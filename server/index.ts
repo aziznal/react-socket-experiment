@@ -50,8 +50,12 @@ io.on('connection', (socket) => {
         console.log("telling user they're awesome")
     }, 1000)
 
+    socket.onAny((data) => {
+        console.log(`Client says: ${data}`);
+    })
+
     socket.on("disconnect", (reason) => {
         console.log(`Socket disconnected. Reason: ${reason}`);
         clearInterval(interval);
-    })
+    });
   });
