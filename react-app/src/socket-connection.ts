@@ -1,11 +1,21 @@
 import { Observable, Subject } from "rxjs";
 import socketIO, { Socket } from "socket.io-client";
 
+/**
+ * Manages connections to the server, including opening and closing them, and
+ * saying hi to ther server
+ */
 export class ServerConnection {
+    /**
+     * Updates incoming from the server
+     */
     static get updates(): Observable<string> {
         return this.#updates;
     }
 
+    /**
+     * Whether the connection to the server is currently open
+     */
     static get isConnected(): boolean {
         return this.#socket !== undefined && this.#socket.connected;
     }
@@ -13,8 +23,14 @@ export class ServerConnection {
     static #updates = new Subject<string>();
     static #socket: Socket | undefined;
 
+    /**
+     * Opens a new connection to the server.
+     *
+     * If a connection already exists, then it's closed first then a new
+     * connection is created.
+    */
     static async connect(): Promise<void> {
-        if (this.isConnected) return this.disconnect();
+        if (this.isConnected) this.disconnect();
 
         this.#socket = socketIO('http://localhost:4001');
 
@@ -25,18 +41,22 @@ export class ServerConnection {
         this.#listenToSocketEmissions();
     }
 
-    static disconnect() {
+    /**
+     * Closed the current active connection if it exists and is actually active.
+    */
+    static disconnect(): void {
         if (!this.isConnected) return;
 
+        this.#socket?.disconnect();
+        
+        this.#socket?.removeAllListeners();
+        
         console.log("disconnected from socket");
-
-        this.#socket!.disconnect();
-
-        this.#socket!.removeAllListeners();
-
-        this.#socket = undefined;
     }
 
+    /**
+     * Greets the server to sooth its feelings of not being able to express itself visually.
+     */
     static sayHi() {
         if (!this.isConnected) return;
 

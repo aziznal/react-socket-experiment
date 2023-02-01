@@ -7,7 +7,7 @@ function App() {
   const [updatesSub, setUpdatesSub] = useState<Subscription>();
 
   const connect = async () => {
-    if (server.isConnected) return;
+    resetUpdatesSub();
 
     await server.connect();
 
@@ -17,11 +17,15 @@ function App() {
   }
 
   const disconnect = () => {
+    resetUpdatesSub();
+
+    server.disconnect();
+  }
+
+  const resetUpdatesSub = () => {
     updatesSub?.unsubscribe();
 
     setUpdatesSub(undefined);
-
-    server.disconnect();
   }
 
   const sayHi = () => {
