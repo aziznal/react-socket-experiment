@@ -2,6 +2,8 @@ import express from "express";
 import http from 'http';
 import { Server } from 'socket.io';
 
+import cors from 'cors';
+
 const serverPort = 3000;
 const socketPort = 3001;
 
@@ -12,6 +14,7 @@ const io = new Server(socketServer);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cors());
 
 app.get(
     "/",
