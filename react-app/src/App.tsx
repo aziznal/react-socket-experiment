@@ -1,46 +1,34 @@
-import React, { useEffect, useState } from 'react';
-import { Socket } from 'socket.io-client';
-import { connectToSocket, disconnectFromSocket } from './socket-connection';
+import React, { useState } from 'react';
+import { Subscription } from 'rxjs';
+import { ServerConnection } from './socket-connection';
 
 function App() {
-  const [socket, setSocket] = useState<Socket | null>();
+  const server = ServerConnection;
+  const [updatesSub, setUpdatesSub] = useState<Subscription>();
 
-  const connect = () => {
-    // if already connected
-    if (socket !== null && socket !== undefined) return;
+  const connect = async () => {
+    if (server.isConnected) return;
 
-    console.log("connected!");
+    await server.connect();
 
-    setSocket(connectToSocket());
+    const sub = server.updates.subscribe((update) => { console.log(update) })
+
+    setUpdatesSub(sub);
   }
 
   const disconnect = () => {
-    if (socket === null || socket === undefined) return;
+    updatesSub?.unsubscribe();
 
-    console.log("disconnected!");
+    setUpdatesSub(undefined);
 
-    disconnectFromSocket(socket);
-
-    setSocket(null);
+    server.disconnect();
   }
 
   const sayHi = () => {
-    if (socket === null || socket === undefined) return;
-
     console.log("telling server it's awesome too...");
 
-    socket.emit(`Hi Server. You're awesome too!!`);
+    server.sayHi();
   }
-
-  useEffect(() => {
-    if (socket === null || socket === undefined) return;
-
-    socket.onAny((something) => {
-      console.log(`Socket says: ${something}`)
-    });
-
-    return () => {socket.removeAllListeners()};
-  }, [socket])
 
   return (
     <div style={{
@@ -53,7 +41,7 @@ function App() {
       width: '100vw',
     }}>
       <div>
-        Socket connected: <>{(socket !== null) ? 'true' : 'false'}</>
+        Socket connected: <>{server.isConnected ? '✅' : '❌'}</>
       </div>
 
       <button onClick={ connect }>
